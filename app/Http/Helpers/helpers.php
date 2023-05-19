@@ -48,6 +48,7 @@ function showRate($id)
         $countrate = City::where('id', $cityid)->withCount('hotel_rates')->pluck('hotel_rates_count');
         return $countrate[0];
     }
+
     
 
 

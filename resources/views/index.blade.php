@@ -108,6 +108,9 @@
               <li class="list--order">Đơn hàng
                 <ul class="sub-menu">
                   <li class="order order--check" style="margin: 0;"><a style="padding: 15px 30px;" href="{{ route('checkticked')}}">Kiểm tra đơn hàng</a></li>
+                  @if(Auth::check())
+                  <li class="order order--user" style="margin: 0;"><a style="padding: 15px 30px;" href="{{ route('yourorders')}}">Đơn hàng của bạn</a></li>
+                  @endif
                   {{-- <li style="margin: 0;"><a style="padding: 15px 33px;" href="#" data-toggle="modal" data-target="#phongdoan">Tập thể</a></li> --}}
                 </ul>
               </li>
@@ -165,10 +168,16 @@
                       <a href="{{ route('user.acc')}}" class="jss75">Tài khoản</a>
                     </div>
                     <div class="list__options--like MuiBox-root jss214 jss74">
-                      <div class="MuiBox-root jss215 jss75">Yêu thích</div>
+                      <div class="MuiBox-root jss215 jss75">
+                        <a href="{{ route('favorite')}}" class="jss75"> Yêu thích</a>
+                      </div>
                     </div>
                     <div class="list__options--order MuiBox-root jss216 jss74">
-                      <div class="MuiBox-root jss217 jss75">Đơn phòng</div>
+                      <div class="MuiBox-root jss217 jss75">
+                        <a href="{{ route('yourorders')}}" class="jss75">
+                          Đơn phòng
+                        </a>
+                      </div>
                     </div>
                     <div class="list__options--ticketplant MuiBox-root jss218 jss74">
                       <div class="MuiBox-root jss219 jss75">Vé máy bay</div>

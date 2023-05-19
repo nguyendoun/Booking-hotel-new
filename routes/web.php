@@ -113,8 +113,14 @@ Route::get('/dat-phong','App\Http\Controllers\HomeController@booking')->name('bo
 Route::get('/thanh-toan','App\Http\Controllers\HomeController@thanhtoan')->name('thanhtoan');
 
 //check mã đơn hàng
-Route::get('/kiem-tra-don-hang','App\Http\Controllers\HomeController@checkticked')->name('checkticked');
-Route::post('/kiem-tra-don-hang','App\Http\Controllers\HomeController@checkorderstt')->name('checkorderstt');
+Route::get('/kiem-tra-don-hang','App\Http\Controllers\BookingController@checkticked')->name('checkticked');
+Route::post('/kiem-tra-don-hang','App\Http\Controllers\BookingController@checkorderstt')->name('checkorderstt');
+// đơn hàng của bạn
+Route::get('/don-hang-cua-ban','App\Http\Controllers\BookingController@yourorders')->name('yourorders');
+//thêm khách sạn yêu thích
+Route::get('/addfavorite/{id}','App\Http\Controllers\HomeController@addfavorite')->name('addfavorite');
+//xem danh sách khách sạn yêu thích
+Route::get('/khach-san-yeu-thich','App\Http\Controllers\HotelController@favorite')->name('favorite');
 
 
 Route::get('/room/{id}/booking','App\Http\Controllers\BookingController@show')->name('home.booking');

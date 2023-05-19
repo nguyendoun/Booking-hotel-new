@@ -5,7 +5,6 @@
 
 @section('content')
 
-
 <form class="" id="Hotels" action="{{ route('checkorderstt') }}" method="POST">
     @csrf
     <div class="item">

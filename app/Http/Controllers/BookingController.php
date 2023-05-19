@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use App\Models\Room;
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
@@ -82,5 +84,39 @@ class BookingController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function checkticked(){
+        return view('checkticked');
+    }
+    public function checkorderstt(Request $request){
+        
+        $ordercode = $request->input('order_code');
+        $sdt = $request->input('number_phone');
+       
+        $rs = Booking::whereHas('bookingRooms', function ($query) use ($ordercode){
+            return $query->where('order_code', $ordercode);
+            })->whereHas('bookingInfos', function ($q) use ($sdt){
+                return $q->where('phone', $sdt);
+                })->first();
+        if($rs !== null){
+            if($rs->status == 0){
+                dd('chờ xác nhận');
+            }
+            elseif($rs->status == 1){
+                dd('đã xác nhận');
+            }
+        }else{
+            dd('chịu');
+        }
+        
+    }
+
+    public function yourorders(){
+        $user_id = Auth::user()->id;
+        // $user_id = Auth::user()->id;
+        $booking = Booking::where('user_id',$user_id)->with('bookingRooms', 'bookingInfos')->get();
+        // dd($booking);
+        return view('account.yourorder', compact('booking'));
     }
 }

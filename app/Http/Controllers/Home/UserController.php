@@ -107,7 +107,7 @@ class UserController extends Controller
 
     // edit
     public function showacc(){
-        return view('account');
+        return view('account.account');
     }
     public function update(Request $request){
         $id = Auth::user()->id;

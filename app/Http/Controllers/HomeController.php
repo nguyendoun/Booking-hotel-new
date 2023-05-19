@@ -10,7 +10,10 @@ use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Booking;
 use App\Models\BookingInfo;
+use App\Models\Favorite;
 use App\Models\RoomType;
+use App\Models\Serviceofhotel;
+use App\Models\User;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
@@ -22,7 +25,10 @@ use Illuminate\Support\Facades\Session as FacadesSession;
 
 class HomeController extends Controller
 {
-    
+    protected $favorite;
+    public function __construct(){
+        $this->favorite = new Favorite();
+    }
     /**
      * Create a new controller instance.
      *
@@ -43,11 +49,22 @@ class HomeController extends Controller
     //post
     public function searchhotel(Request $request){
         $namecity = $request->input('city');
-        $varcity = City::where('city', 'LIKE' , $namecity)->first();
+        $varcity = City::where('city', 'LIKE' , '%'.$namecity.'%')->first();
         $startDate = $request->input('startDate');
         $endDate = $request->input('endDate');
         if(empty($varcity->id)){
-            dd('nhập lại');
+            $f = strtok($namecity, " ");
+            $varcity = City::where('city', 'LIKE' , $f.'%')->first();
+            if(empty($varcity->id)){
+                $f = explode(' ', $namecity);
+                $f = array_pop($f);
+                $varcity = City::where('city', 'LIKE' ,'%'.$f)->first();
+                if(empty($varcity->id)){
+                    return redirect()->back()->with(['mess'=> 'khônng tìm thấy kết quả nào tương tự']);
+                    }
+                }
+            $city= $varcity->id;
+            $namecity = $varcity->city;
         }else{
             $city= $varcity->id;
             $namecity = $varcity->city;
@@ -221,8 +238,15 @@ class HomeController extends Controller
         $days= floor((strtotime($endDate) - strtotime($startDate))/(60*60*24));
         $codes = Coupon::all();
         $categories= Category::all();
+        $favohotel = null;
+        if(Auth::check()){
+            $favohotel =  $this->favorite->getId();
+            $favohotel = $favohotel->toArray();
+        }
         
-        return view('searchhotel', compact('hotels','city', 'namecity', 'startDate', 'endDate', 'days', 'sohotels', 'codes','categories', 'page'));
+       
+        
+        return view('searchhotel', compact('favohotel','hotels','city', 'namecity', 'startDate', 'endDate', 'days', 'sohotels', 'codes','categories', 'page'));
     }
     public function booking(Request $request){
         $roomid = $request -> input('roomid');
@@ -332,14 +356,6 @@ class HomeController extends Controller
     }
 
 
-    public function arrayPaginator($hotels, $request) {
-        $page = $request->input('page', 1);
-        $perPage = 2;
-        $offset = ($page * $perPage) - $perPage;
-
-        return new LengthAwarePaginator(array_slice($hotels, $offset, $perPage, true), count($hotels), $perPage, $page,
-            ['path' => $request->url(), 'query' => $request->query()]);
-    }
     public function filterstars($rooms){
         $stars = session()->get('stars');
         if($stars !== null ){
@@ -362,39 +378,24 @@ class HomeController extends Controller
         return $rooms;
     }
 
-    public function checkticked(){
-        return view('checkticked');
-    }
-    public function checkorderstt(Request $request){
-        
-        $ordercode = $request->input('order_code');
-        $sdt = $request->input('number_phone');
-       
-        $rs = Booking::whereHas('bookingRooms', function ($query) use ($ordercode){
-            return $query->where('order_code', $ordercode);
-            })->whereHas('bookingInfos', function ($q) use ($sdt){
-                return $q->where('phone', $sdt);
-                })->first();
-        if($rs !== null){
-            if($rs->status == 0){
-                dd('chờ xác nhận');
-            }
-            elseif($rs->status == 1){
-                dd('đã xác nhận');
-            }
+    public function addfavorite($hotel_id){
+        // dd($hotel_id);
+        $user_id = Auth::user()->id;
+        if(Favorite::where('user_id', '=', $user_id)->exists() && Favorite::where('hotel_id', '=', $hotel_id)->exists()){
+            $favod = Favorite::where('user_id', '=', $user_id)->where('hotel_id', '=', $hotel_id);
+            // dd($favod);
+            $favod->delete();
         }else{
-            dd('chịu');
+            $favo = new Favorite();
+        $favo->hotel_id = $hotel_id;
+        $favo->user_id = $user_id;
+        $favo->save();
         }
         
-    }
 
-    // public function autocompleteSearch(Request $request)
-    // {
-    //         $data = City::select("city")
-    //             ->where("city","LIKE","%{$request->query}%")
-    //             ->get();
-    //             return response()->json($data);
-    // } 
+        return redirect()->back()->with(['mess'=> "đã thêm vào danh sach yêu thích"]);
+    }
+    
 
     
 }
