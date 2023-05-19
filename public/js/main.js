@@ -49,6 +49,8 @@ if(style == "none"){
 }else{
   document.getElementById("box-user").style.display = 'none';
 }
+
+
 }
 
 

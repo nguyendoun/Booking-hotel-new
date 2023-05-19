@@ -1,9 +1,37 @@
-@extends('layouts.master')
+<!DOCTYPE html>
+<html lang="en">
 
-{{-- @section('title') --}}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title> @yield('title', 'Your-orders')</title>
+    <link rel="stylesheet" href="{{ asset('css/font.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/btr.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/font-awesome.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
+    <link rel="stylesheet" href="{{ asset('js/bootstrap.bundle.min.js') }}" />
 
-@section('styles')
-    <style>
+    <link rel="stylesheet" type="text/css" href="resources/js/bootstrap.bundle.min.js" />
+    <link rel='stylesheet' href='https://sachinchoolur.github.io/lightslider/dist/css/lightslider.css'>
+
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js'></script>
+    <script src='https://sachinchoolur.github.io/lightslider/dist/js/lightslider.js'></script>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"
+        integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous">
+    </script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+      <script type="text/javascript" src="{{URL::asset('js/main.js')}}"></script>
+      <style>
         .jss372 {
             color: #ffffff;
             height: 105px;
@@ -634,156 +662,53 @@
                 top: -100%;
             }
         }
-    </style>
-@stop
-
-
-@section('content')
-
-    <main>
-        <div class="MuiBox-root jss532 jss371">
-            <div class="MuiBox-root jss533 jss372" style="background: rgb(0, 182, 243);">
-                <div class="MuiBox-root jss534 jss379 jss374">
-                    <div class="MuiBox-root jss535"><a
-                            class="MuiTypography-root MuiLink-root MuiLink-underlineHover jss375 MuiTypography-colorPrimary"
-                            href="/"><span class="MuiBox-root jss536">Trang chủ</span></a><svg width="10"
-                            height="6" fill="none" class="svgFillAll jss373">
-                            <path d="M1.667 1.333L5 4.667l3.333-3.334" stroke="#1A202C" stroke-width="1.5"
-                                stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg><span class="MuiBox-root jss537">Tài khoản</span></div><span class="MuiBox-root jss538">Tài
-                        khoản </span>
-                </div>
-            </div>
-            <div class="MuiBox-root jss539 jss379">
-                <div class="MuiTabs-root">
-                    <div class="MuiTabs-scroller MuiTabs-fixed" style="overflow: hidden;">
-                        <div aria-label="full width tabs example" class="MuiTabs-flexContainer" role="tablist"><button
-                                class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit jss376 Mui-selected"
-                                tabindex="0" type="button" role="tab" aria-selected="true"><span
-                                    class="MuiTab-wrapper">Tài khoản</span><span
-                                    class="MuiTouchRipple-root"></span></button><button
-                                class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit jss376" tabindex="-1"
-                                type="button" role="tab" aria-selected="false"><span class="MuiTab-wrapper">Đơn
-                                    phòng</span><span class="MuiTouchRipple-root"></span></button><button
-                                class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit jss376" tabindex="-1"
-                                type="button" role="tab" aria-selected="false"><span class="MuiTab-wrapper">Chuyến
-                                    bay</span><span class="MuiTouchRipple-root"></span></button><button
-                                class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit jss376" tabindex="-1"
-                                type="button" role="tab" aria-selected="false"><span class="MuiTab-wrapper">Khách sạn
-                                    yêu thích</span><span class="MuiTouchRipple-root"></span></button></div><span
-                            class="jss461 jss463 MuiTabs-indicator jss460 jss377" style="left: 0px; width: 160px;"></span>
-                    </div>
-                </div>
-                <div class="MuiBox-root jss540">
-                    <div class="MuiBox-root jss541">
-                        <div class="MuiBox-root jss542 jss513">
-                            <form class="form--updateuser" action="{{ route('update.user') }}" method="post"
-                                enctype="multipart/form-data">
-                                <div class="MuiBox-root jss543"><span class="MuiBadge-root dropzone" role="button"
-                                        tabindex="0">
-
-                                        <input type="file" name="image" id="image" accept="image/*"
-                                            class="form-control-file" onchange="readURL(this);">
-
-
-                                        @if (Auth::user()->image !== null)
-                                            <div class="MuiAvatar-root MuiAvatar-circle jss514 MuiAvatar-colorDefault">
-                                                <img src="{{ asset('images/' . Auth::user()->image) }}" class="card-img-top"
-                                                    style="width: 100%; height: 100%;" id="dd">
-                                            </div>
-                                        @else
-                                        <div class="MuiAvatar-root MuiAvatar-circle jss514 MuiAvatar-colorDefault">
-                                            <img class="card-img-top" src="{{ Avatar::create(Auth::user()->name)->toBase64() }}" id="dd">
-                                        </div>
-                                        @endif
-                                        <span class="MuiBadge-badge MuiBadge-anchorOriginBottomRightCircle">
-                                            <div class="MuiBox-root jss544 jss516">
-                                                <svg width="20" height="20" fill="none">
-                                                    <path
-                                                        d="M4.167 5.833H5a1.667 1.667 0 001.667-1.666.833.833 0 01.833-.834h5a.833.833 0 01.833.834A1.667 1.667 0 0015 5.833h.833A1.666 1.666 0 0117.5 7.5V15a1.666 1.666 0 01-1.667 1.667H4.167A1.667 1.667 0 012.5 15V7.5a1.667 1.667 0 011.667-1.667"
-                                                        stroke="#1A202C" stroke-width="1.5" stroke-linecap="round"
-                                                        stroke-linejoin="round"></path>
-                                                    <path d="M10 13.333a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="#1A202C"
-                                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                                    </path>
-                                                </svg>
-                                            </div>
-                                        </span>
-                                    </span></div>
-                                <div class="MuiBox-root jss545">
-                                    <div class="">
-
-                                        @csrf
-                                        <div class="form-field">
-                                            <input type="text" name="name" class="form-input" placeholder=" "
-                                                value="{{ Auth::user()->name }}">
-                                            <label for="name" class="form-label">Full Name<i
-                                                    style="color:red">*</i></label>
-                                        </div>
-
-                                        <div class="form-field">
-                                            <input type="email" name="email" class="form-input" placeholder=" "
-                                                value="{{ Auth::user()->email }}">
-                                            <label for="Email" class="form-label">Email<i
-                                                    style="color:red">*</i></label>
-                                        </div>
-
-                                        <div class="form-field">
-                                            <input type="text" {{ Auth::user()->phone !== null ? 'readonly' : '' }} name="phone" class="form-input"
-                                                placeholder=" " value="{{ Auth::user()->phone }}">
-                                            <label for="number" class="form-label">Phone<i
-                                                    style="color:red">*</i></label>
-                                        </div>
-
-                                        <div class="form-field">
-                                            <input type="text" name="address" class="form-input" placeholder=" "
-                                                value="{{ Auth::user()->address }}">
-                                            <label for="address" class="form-label">Address<i
-                                                    style="color:red">*</i></label>
-                                        </div>
-                                        {{-- @if ($errors->has('address'))
-                                                    <p style="color:red">{{$errors->first('address')}}</p>
-                                                @endif --}}
-                                        <div class="form-field form-field__button">
-                                            <button type="submit" class="form-button">Lưu lại</button>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </form>
-                            @if (Session::has('mess'))
-                                <p class="alert alert-info">{{ Session::get('mess') }}</p>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-
-    @include('partials.account.mess')
-
-@stop
-<script language="javascript">
-    function change_att_mess() {
-        var style = document.getElementById("mess").style.top;
-        if (style == "5%") {
-            document.getElementById("mess").style.top = "-100%";
-            document.getElementById("mess").classList.remove("alert-success");
-            // document.getElementById("mess").classList.add("add");
+        .selected{
+    border-bottom: solid #ff3366;
         }
-    }
-
-    function readURL(input) {
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-
-    reader.onload = function (e) {
-      $('#dd').attr('src', e.target.result).width(124).height(124);
-    };
-
-    reader.readAsDataURL(input.files[0]);
-  }
+        .selected span{
+            color: #ff3366;
+        }
+    .ht .image{
+    position: relative;
 }
-</script>
+.ht .image a{
+position: absolute;
+right: 10px;
+top: 5px;
+}
+.ord .MuiBox-root.jss542.jss513 {
+    flex-direction: column;
+}
+.starandcate {
+    display: flex;
+    flex-direction: column;
+}
+.starandcate .starsss, .rate, .address{
+    display: flex;
+}
+.activept {
+            background-color: #f38e11;
+        }
+
+        .defau {
+            background-color: #00B6F3;
+        }
+
+        .defau:hover {
+            background-color: #1c6780;
+        }
+
+
+    </style>
+    @yield('styles')
+</head>
+
+<body>
+    @include('partials.orders.header')
+    @include('partials.orders.navlink')
+    @yield('main')
+    @include('partials.orders.footer')
+
+</body>
+
+</html>

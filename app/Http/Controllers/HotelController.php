@@ -9,12 +9,18 @@ use App\Models\Room;
 use App\Models\Coupon;
 use App\Models\Image;
 use App\Models\BookingRoom;
+use App\Models\Favorite;
 use Illuminate\Http\Request;
 use DB, Session, Auth;
 
 
 class HotelController extends Controller
 {
+    protected $favorite;
+    public function __construct(){
+        $this->favorite = new Favorite();
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -128,4 +134,15 @@ class HotelController extends Controller
         //
     }
 
+    public function favorite(Request $request){
+        $id_hotels = $this->favorite->getId();
+        $favoar = $id_hotels->toArray();
+        $hotels = Hotel::whereIn('id', $id_hotels)->get();
+        $favohotel = $hotels->toArray();
+        $page = $request->input('page');
+        $page = $page ?? 1;
+        
+        $favohotel = $this->arrayPaginator($favohotel, $request);
+        return view('account.favorite', compact('favohotel', 'favoar','page'));
+    }
 }

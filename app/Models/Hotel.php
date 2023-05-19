@@ -44,6 +44,10 @@ class Hotel extends Model
     {
         return $this->belongsTo('App\Models\City');
     }
+    public function servicesofhotel()
+    {
+        return $this->hasMany('App\Models\Servicesofhotel', 'hotel_id', 'id');
+    }
     // public function roomHoltelRate()
     // {
     //     return $this->hasOneThrough('App\Models\HotelRate', 'App\Models\Room');
