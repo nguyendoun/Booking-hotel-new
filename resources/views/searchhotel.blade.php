@@ -367,7 +367,7 @@
 
     <div class="body">
         <div class="container-fluid" style="background-color: #F4F8FA; margin: 0px; padding:0px;">
-            <div class="container-fluid" style="background-color: white; margin: 0px; padding:0px;position: fixed;">
+            <div class="container-fluid" style="background-color: white; margin: 0px; padding:0px;position: fixed; z-index: 1001;">
                 <div class="containerr" style="height: 130px;">
                     <header class="caidau">
                         <nav style=" width: 100%; height: 50px;">

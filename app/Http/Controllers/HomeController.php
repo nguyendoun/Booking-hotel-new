@@ -59,12 +59,15 @@ class HomeController extends Controller
                 $f = explode(' ', $namecity);
                 $f = array_pop($f);
                 $varcity = City::where('city', 'LIKE' ,'%'.$f)->first();
-                if(empty($varcity->id)){
-                    return redirect()->back()->with(['mess'=> 'khônng tìm thấy kết quả nào tương tự']);
-                    }
+                    if(empty($varcity->id)){
+                        $namehotel = $request->input('city');
+                        $varhotels = Hotel::where('name', 'LIKE' , '%'.$namehotel.'%')->first()->id;
+                        return to_route('hotel.detail', ['id' => $varhotels, 'startDate' => $startDate, 'endDate'=> $endDate]);
+                        // dd($varhotels);
+                        }
+                $city= $varcity->id;
+                $namecity = $varcity->city;
                 }
-            $city= $varcity->id;
-            $namecity = $varcity->city;
         }else{
             $city= $varcity->id;
             $namecity = $varcity->city;
@@ -207,24 +210,27 @@ class HomeController extends Controller
             })->orWhereDoesntHave('bookingRooms')->whereBetween('price', [$price_min, $price_max])->get();
         }
         $rooms = $rooms->whereIn('city_id', $city);
-        foreach($rooms as $room){
-            $d[] = showRate($room->hotel_id);
-        }
-        $addrate =$rooms->map(function ($post, $key) use($rooms, $d){ 
-            foreach($rooms as $k => $value){
-                    $post['sum_rate'] = $d[$key];
-                    if($d[$key] >= 9){
-                        $post['stt_rate'] = 1;
-                    }elseif($d[$key] >= 8 && $d[$key] < 9){
-                        $post['stt_rate'] = 2;
-                    }elseif($d[$key] >= 7 && $d[$key] < 8){
-                        $post['stt_rate'] = 3;
-                    }else{
-                        $post['stt_rate'] = 4;
-                    }
-                    return $post;
+        if($rooms->count() !== 0){
+            foreach($rooms as $room){
+                $d[] = showRate($room->hotel_id);
             }
-        });
+            $addrate =$rooms->map(function ($post, $key) use($rooms, $d){ 
+                foreach($rooms as $k => $value){
+                        $post['sum_rate'] = $d[$key];
+                        if($d[$key] >= 9){
+                            $post['stt_rate'] = 1;
+                        }elseif($d[$key] >= 8 && $d[$key] < 9){
+                            $post['stt_rate'] = 2;
+                        }elseif($d[$key] >= 7 && $d[$key] < 8){
+                            $post['stt_rate'] = 3;
+                        }else{
+                            $post['stt_rate'] = 4;
+                        }
+                        return $post;
+                }
+            });
+        }
+        
         if(isset($condition) && $condition == "rate"){
            $rooms = $rooms->sortByDesc('sum_rate');
         }
@@ -243,7 +249,7 @@ class HomeController extends Controller
             $favohotel =  $this->favorite->getId();
             $favohotel = $favohotel->toArray();
         }
-        
+        // dd($rooms);
        
         
         return view('searchhotel', compact('favohotel','hotels','city', 'namecity', 'startDate', 'endDate', 'days', 'sohotels', 'codes','categories', 'page'));
@@ -321,7 +327,6 @@ class HomeController extends Controller
             $phone = $request->input('phone');
             $email = $request->input('email');
             $checkname="NN";
-           
         }
         if(isset($note)){
             $note = $note;
@@ -379,20 +384,17 @@ class HomeController extends Controller
     }
 
     public function addfavorite($hotel_id){
-        // dd($hotel_id);
         $user_id = Auth::user()->id;
-        if(Favorite::where('user_id', '=', $user_id)->exists() && Favorite::where('hotel_id', '=', $hotel_id)->exists()){
-            $favod = Favorite::where('user_id', '=', $user_id)->where('hotel_id', '=', $hotel_id);
-            // dd($favod);
+        $favo = Favorite::where('user_id', $user_id)->where('hotel_id', $hotel_id)->first();
+        if($favo !== null){
+            $favod = Favorite::where('user_id', $user_id)->where('hotel_id', $hotel_id);
             $favod->delete();
         }else{
             $favo = new Favorite();
-        $favo->hotel_id = $hotel_id;
-        $favo->user_id = $user_id;
-        $favo->save();
+            $favo->hotel_id = $hotel_id;
+            $favo->user_id = $user_id;
+            $favo->save();
         }
-        
-
         return redirect()->back()->with(['mess'=> "đã thêm vào danh sach yêu thích"]);
     }
     

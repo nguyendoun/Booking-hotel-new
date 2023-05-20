@@ -136,12 +136,11 @@ class HotelController extends Controller
 
     public function favorite(Request $request){
         $id_hotels = $this->favorite->getId();
-        $favoar = $id_hotels->toArray();
         $hotels = Hotel::whereIn('id', $id_hotels)->get();
+        $favoar =  $id_hotels->toArray();
         $favohotel = $hotels->toArray();
         $page = $request->input('page');
         $page = $page ?? 1;
-        
         $favohotel = $this->arrayPaginator($favohotel, $request);
         return view('account.favorite', compact('favohotel', 'favoar','page'));
     }

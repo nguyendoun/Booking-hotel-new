@@ -14,7 +14,6 @@ class Favorite extends Model
     public function getId() {
         $user_id = Auth::user()->id;
         $favohotel = Favorite::where('user_id', $user_id)->pluck('hotel_id');
-        
         return $favohotel;
     }
 }

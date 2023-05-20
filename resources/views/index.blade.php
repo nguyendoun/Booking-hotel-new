@@ -235,31 +235,30 @@
           </div>
         </form>
 
-        <div class="booking_details tab__content" id="Homes">
+        <form class="booking_details tab__content" id="Homes">
           <div class="item">
             <i class="fa fa-search"></i>
-            Enter a destination
+            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination"  style="border: none;padding-left: 4px;">
           </div>
 
           <div class="item">
-            <div class="date">31st Dec 2020 <i class="fa fa-angle-down"></i></div>
-            <div class="days">Thursday</div>
+            <p style="margin: 0px;">Thời gian đến:</p>
+            <input type="date" name="startDate" value="{{ $dtnow }}" min="{{$dtnow}}">
           </div>
 
           <div class="item">
-            <div class="date">31st Dec 2020 <i class="fa fa-angle-down"></i></div>
-            <div class="days">Thursday</div>
+            <p style="margin: 0px;">Thời điểm đi:</p>
+            <input type="date" name="endDate" value="{{ $dt }}">
           </div>
 
           <div class="item">
-            <div class="people price">Giá<i class="fa fa-angle-down"></i></div>
+            <div class="cta active">
+              <input type="hidden" name="orderBy" value="DEFAULT">
+              <input class="cta active" type="submit" value="Tìm">
+            </div>
           </div>
 
-          <div class="item">
-            <div class="cta active">Search</div>
-          </div>
-
-        </div>
+        </form>
 
       </div>
 

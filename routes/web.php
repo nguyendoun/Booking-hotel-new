@@ -138,6 +138,5 @@ Route::get('/auth/redirect/{provider}', 'App\Http\Controllers\SocialController@r
 
 Route::get('/clear-cache-all', function() {
     Artisan::call('cache:clear');
-  
-    dd("Cache Clear All");
+    return redirect()->back();
 });
