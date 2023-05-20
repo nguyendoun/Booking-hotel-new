@@ -140,3 +140,5 @@ Route::get('/clear-cache-all', function() {
     Artisan::call('cache:clear');
     return redirect()->back();
 });
+
+Route::get('/autocomplete-search', 'App\Http\Controllers\TypeaheadController@autocompleteSearch');

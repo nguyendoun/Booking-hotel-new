@@ -214,7 +214,7 @@
 
           <div class="item">
             <i class="fa fa-search"></i>
-            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination"  style="border: none;padding-left: 4px;">
+            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination"  autocomplete="off" style="border: none;padding-left: 4px;">
           </div>
 
           <div class="item">
@@ -238,7 +238,7 @@
         <form class="booking_details tab__content" id="Homes">
           <div class="item">
             <i class="fa fa-search"></i>
-            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination"  style="border: none;padding-left: 4px;">
+            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
           </div>
 
           <div class="item">
@@ -718,6 +718,7 @@
 
     </div>
   </div>
+  {{-- {{$filterResult}} --}}
 
   @include('partials.footer')
 
@@ -730,5 +731,19 @@
 
 
   
-
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.1/bootstrap3-typeahead.min.js">
+    </script>
+    <script type="text/javascript">
+        var route = "{{ url('autocomplete-search') }}";
+        $('#search').typeahead({
+            source: function (query, process) {
+                return $.get(route, {
+                    query: query
+                }, function (data) {
+                    return process(data);
+                });
+            }
+        });
+    </script>
 </html>

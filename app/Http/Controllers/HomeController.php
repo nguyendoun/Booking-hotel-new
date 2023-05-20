@@ -63,7 +63,6 @@ class HomeController extends Controller
                         $namehotel = $request->input('city');
                         $varhotels = Hotel::where('name', 'LIKE' , '%'.$namehotel.'%')->first()->id;
                         return to_route('hotel.detail', ['id' => $varhotels, 'startDate' => $startDate, 'endDate'=> $endDate]);
-                        // dd($varhotels);
                         }
                 $city= $varcity->id;
                 $namecity = $varcity->city;
