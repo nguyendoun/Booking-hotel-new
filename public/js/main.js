@@ -1,4 +1,6 @@
 $( document ).ready(function() {
+ 
+  
 var buttons = document.getElementsByClassName('tab__link');
 var contents = document.getElementsByClassName('tab__content');
 
@@ -52,5 +54,3 @@ if(style == "none"){
 
 
 }
-
-

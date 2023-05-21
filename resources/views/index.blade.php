@@ -9,7 +9,7 @@
   <link rel="stylesheet" type="text/css" href="{{asset('css/btr.css')}}" />
   <link rel="stylesheet" type="text/css" href="{{asset('css/bootstrap.min.css')}}" />
   <link rel="stylesheet" type="text/css" href="{{asset('css/font-awesome.min.css')}}" />
-  <link rel="stylesheet" type="text/css" href="{{asset('css/style.css')}}" />
+  <link rel="stylesheet" type="text/css" href="{{URL::asset('css/style.css')}}" />
   <link rel="stylesheet" type="text/css" href="{{asset('css/room.css')}}" />
   <link rel="stylesheet" type="text/css" href="resources/js/bootstrap.bundle.min.js" />
   <link rel='stylesheet' href='https://sachinchoolur.github.io/lightslider/dist/css/lightslider.css'>
@@ -80,6 +80,41 @@
     font-size: 14px;
     line-height: 17px;
 }
+ul.typeahead.dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    transform: translate(-37px,10px);
+    min-width: 630px;
+}
+.dropdown-menu li {
+    display: flex;
+    align-items: center;
+    margin-left: 6px;
+    border-bottom: 2px solid #f1f3f5;
+}
+.dropdown-menu li:last-child {
+    border-bottom: none;
+}
+.dropdown-menu li::before {
+    content: ' ';
+    background-image: url('images/location.svg');
+    background-size: 15px 15px;
+    display: block;
+    min-width: 30px;
+    width: 30px;
+    height: 30px;
+    background-color: #f1f3f5;
+    border-radius: 8px;
+    background-position: center center;
+    margin: 10px;
+    background-repeat: no-repeat;
+}
+.dropdown-item{
+  padding: 0px !important;
+}
+.dropdown-item strong {
+    color: #f38e11;
+}
 </style>
 </head>
 
@@ -97,15 +132,17 @@
           <div class="nav nav__pc menu ">
             <div class="logo nav__pc--logo">Booking<span>Hotel</span>.vn</div>
             <ul class="nav__pc--list list clearfix">
-              <li class="list--sale">Khuyến mãi</li>
-              <li class="list--contact">Liên hệ</li>
-              <li class="list--quick"><a href="">Đặt phòng nhanh</a>
-                <ul class="sub-menu list--quick">
+              <li class="list-item list--sale">Khuyến mãi</li>
+              <li class="list-item list--contact">Liên hệ</li>
+              <li class="list-item list--quick">
+                <a href="">Đặt phòng nhanh</a>
+                <ul class="sub-menu">
                   <li class="quick quick--personal" style="margin: 0;"><a style="padding: 15px 30px;" href="#" data-toggle="modal" data-target="#exampleModal">Cá nhân</a></li>
                   <li class="quick quick--team" style="margin: 0;"><a style="padding: 15px 33px;" href="#" data-toggle="modal" data-target="#phongdoan">Tập thể</a></li>
                 </ul>
               </li>
-              <li class="list--order">Đơn hàng
+              <li class="list-item list--order">
+                <a href="">Đơn hàng</a>
                 <ul class="sub-menu">
                   <li class="order order--check" style="margin: 0;"><a style="padding: 15px 30px;" href="{{ route('checkticked')}}">Kiểm tra đơn hàng</a></li>
                   @if(Auth::check())
@@ -214,7 +251,7 @@
 
           <div class="item">
             <i class="fa fa-search"></i>
-            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination"  autocomplete="off" style="border: none;padding-left: 4px;">
+            <input required class="timkiem" id="search" type="text" name="city" placeholder="Enter a destination"  autocomplete="off" style="border: none;padding-left: 4px;">
           </div>
 
           <div class="item">
@@ -238,7 +275,7 @@
         <form class="booking_details tab__content" id="Homes">
           <div class="item">
             <i class="fa fa-search"></i>
-            <input required class="timkiem typeahead" id="search" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
+            <input required class="timkiem " id="search" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
           </div>
 
           <div class="item">
@@ -718,8 +755,6 @@
 
     </div>
   </div>
-  {{-- {{$filterResult}} --}}
-
   @include('partials.footer')
 
   @include('partials.modal')
@@ -745,5 +780,7 @@
                 });
             }
         });
+
+        
     </script>
 </html>

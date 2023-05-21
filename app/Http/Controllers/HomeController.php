@@ -19,6 +19,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 use Illuminate\Contracts\Session\Session as SessionSession;
 use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Cookie;
+use Cookie;
+use Illuminate\Support\Facades\Cookie as FacadesCookie;
 use Session, Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session as FacadesSession;
@@ -62,6 +65,8 @@ class HomeController extends Controller
                     if(empty($varcity->id)){
                         $namehotel = $request->input('city');
                         $varhotels = Hotel::where('name', 'LIKE' , '%'.$namehotel.'%')->first()->id;
+                        FacadesCookie::queue('cookie', $varhotels, 120);
+                        return response();
                         return to_route('hotel.detail', ['id' => $varhotels, 'startDate' => $startDate, 'endDate'=> $endDate]);
                         }
                 $city= $varcity->id;
@@ -396,6 +401,11 @@ class HomeController extends Controller
         }
         return redirect()->back()->with(['mess'=> "đã thêm vào danh sach yêu thích"]);
     }
+    public function test(){
+        // $cookieRes = Cookie::get('cookie');
+        dd('sfhsdbfshdb');
+    }
+
     
 
     

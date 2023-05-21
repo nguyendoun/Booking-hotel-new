@@ -142,3 +142,5 @@ Route::get('/clear-cache-all', function() {
 });
 
 Route::get('/autocomplete-search', 'App\Http\Controllers\TypeaheadController@autocompleteSearch');
+
+Route::get('/test', 'App\Http\Controllers\HomeController@test');
