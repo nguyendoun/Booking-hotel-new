@@ -11,13 +11,16 @@
   <link rel="stylesheet" type="text/css" href="{{asset('css/font-awesome.min.css')}}" />
   <link rel="stylesheet" type="text/css" href="{{URL::asset('css/style.css')}}" />
   <link rel="stylesheet" type="text/css" href="{{asset('css/room.css')}}" />
-  <link rel="stylesheet" type="text/css" href="resources/js/bootstrap.bundle.min.js" />
+  <link rel="stylesheet" type="text/css" href="{{asset('js/bootstrap.bundle.min.js')}}" />
   <link rel='stylesheet' href='https://sachinchoolur.github.io/lightslider/dist/css/lightslider.css'>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+  
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.1/bootstrap3-typeahead.min.js"></script>
   <script type="text/javascript" src="{{URL::asset('js/main.js')}}"></script>
 <style>
   .avatar{
@@ -83,7 +86,7 @@
 ul.typeahead.dropdown-menu {
     display: flex;
     flex-direction: column;
-    transform: translate(-37px,10px);
+    transform: translate(-36px,25px);
     min-width: 630px;
 }
 .dropdown-menu li {
@@ -109,10 +112,53 @@ ul.typeahead.dropdown-menu {
     margin: 10px;
     background-repeat: no-repeat;
 }
+
+.lichsu button {
+    display: flex;
+    border: none;
+    align-items: center;
+    background-color: white;
+}
+.lichsu .ct {
+  border-bottom: 2px solid #f1f3f5;
+}
+.lichsu .ct:last-child {
+  border-bottom: none;
+}
+
+.lichsu .ct::before {
+    content: ' ';
+    background-image: url('images/history.png');
+    background-size: 15px 15px;
+    display: block;
+    min-width: 30px;
+    width: 30px;
+    height: 30px;
+    background-color: #f1f3f5;
+    border-radius: 8px;
+    background-position: center center;
+    margin: 10px;
+    background-repeat: no-repeat;
+}
+
 .dropdown-item{
   padding: 0px !important;
 }
 .dropdown-item strong {
+    color: #f38e11;
+}
+.qwf{
+    display: flex;
+    justify-content: space-between;
+    margin-inline: 10px;
+}
+.qwf>div{
+    font-weight: 500;
+}
+#items{
+  margin-inline: 10px;
+}
+button.deletee {
     color: #f38e11;
 }
 </style>
@@ -120,6 +166,12 @@ ul.typeahead.dropdown-menu {
 
 <body>
   @php 
+  $ck = Cookie::get('cookie_t');
+  if($ck !== null){
+    
+  $ck = json_decode($ck);
+  $ck = array_reverse($ck);
+  }
     Illuminate\Support\Facades\Session::forget('stars'); 
     Illuminate\Support\Facades\Session::forget('types'); 
 @endphp
@@ -130,7 +182,7 @@ ul.typeahead.dropdown-menu {
       <nav class="">
         <div class="menu--pc wrapper">
           <div class="nav nav__pc menu ">
-            <div class="logo nav__pc--logo">Booking<span>Hotel</span>.vn</div>
+            <div class="logo nav__pc--logo"><a href="/">Booking<span>Hotel</span>.vn</a></div>
             <ul class="nav__pc--list list clearfix">
               <li class="list-item list--sale">Khuyến mãi</li>
               <li class="list-item list--contact">Liên hệ</li>
@@ -246,56 +298,76 @@ ul.typeahead.dropdown-menu {
           <span class="tab__link active">Hotels</span>
           <span class="tab__link">Homes</span>
         </div>
+        <div>
+          <form class="booking_details tab__content" id="Hotels" action="{{ route('search.hotel') }}" method="GET">
 
-        <form class="booking_details tab__content" id="Hotels" action="{{ route('search.hotel') }}" method="GET">
-
-          <div class="item">
-            <i class="fa fa-search"></i>
-            <input required class="timkiem" id="search" type="text" name="city" placeholder="Enter a destination"  autocomplete="off" style="border: none;padding-left: 4px;">
-          </div>
-
-          <div class="item">
-            <p style="margin: 0px;">Thời gian đến:</p>
-            <input type="date" name="startDate" value="{{ $dtnow }}" min="{{$dtnow}}">
-          </div>
-
-          <div class="item">
-            <p style="margin: 0px;">Thời điểm đi:</p>
-            <input type="date" name="endDate" value="{{ $dt }}">
-          </div>
-
-          <div class="item">
-            <div class="cta active">
-              <input type="hidden" name="orderBy" value="DEFAULT">
-              <input class="cta active" type="submit" value="Tìm">
+            <div class="item">
+              <i class="fa fa-search"></i>
+              <input value="" required class="timkiem" id="search" type="text" name="city" placeholder="Địa điểm, khách sạn"  autocomplete="off" style="border: none;padding-left: 4px;">
+              
             </div>
-          </div>
-        </form>
-
-        <form class="booking_details tab__content" id="Homes">
-          <div class="item">
-            <i class="fa fa-search"></i>
-            <input required class="timkiem " id="search" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
-          </div>
-
-          <div class="item">
-            <p style="margin: 0px;">Thời gian đến:</p>
-            <input type="date" name="startDate" value="{{ $dtnow }}" min="{{$dtnow}}">
-          </div>
-
-          <div class="item">
-            <p style="margin: 0px;">Thời điểm đi:</p>
-            <input type="date" name="endDate" value="{{ $dt }}">
-          </div>
-
-          <div class="item">
-            <div class="cta active">
-              <input type="hidden" name="orderBy" value="DEFAULT">
-              <input class="cta active" type="submit" value="Tìm">
+  
+            <div class="item">
+              <p style="margin: 0px;">Thời gian đến:</p>
+              <input type="date" name="startDate" value="{{ $dtnow }}" min="{{$dtnow}}">
             </div>
-          </div>
-
-        </form>
+  
+            <div class="item">
+              <p style="margin: 0px;">Thời điểm đi:</p>
+              <input type="date" name="endDate" value="{{ $dt }}">
+            </div>
+  
+            <div class="item">
+              <div class="cta active">
+                <input type="hidden" name="orderBy" value="DEFAULT">
+                <input class="cta active" type="submit" value="Tìm">
+              </div>
+            </div>
+          </form>
+  
+          <form class="booking_details tab__content" id="Homes">
+            <div class="item">
+              <i class="fa fa-search"></i>
+              <input required class="timkiem " id="" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
+            </div>
+  
+            <div class="item">
+              <p style="margin: 0px;">Thời gian đến:</p>
+              <input type="date" name="startDate" value="{{ $dtnow }}" min="{{$dtnow}}">
+            </div>
+  
+            <div class="item">
+              <p style="margin: 0px;">Thời điểm đi:</p>
+              <input type="date" name="endDate" value="{{ $dt }}">
+            </div>
+  
+            <div class="item">
+              <div class="cta active">
+                <input type="hidden" name="orderBy" value="DEFAULT">
+                <input class="cta active" type="submit" value="Tìm">
+              </div>
+            </div>
+  
+          </form>
+          
+          <ul class="dropdown-menu lichsu" role="listbox" id="lichsu" tabindex="1">
+            <div class="qwf">
+              <div>Tìm kiếm gần đây</div>
+              <button class="deletee" onclick="yy()">Xóa lịch sử tìm kiếm</button>
+            </div>
+            <div id="items">
+              @if($ck !== null)
+                @foreach($ck as $key => $c)
+                <button class="ct" type="button" onclick="testt(this.value)" value="{{getNameCity($c)}}" id="activeee">{{getNameCity($c)}}</button>
+                {{-- <li onclick="test(this.value)" value="{{getNameCity($c)}}" id="activeee"><a id-city="{{$c}}" class="dropdown-item" href="#" role="option">{{getNameCity($c)}}</a></li> --}}
+                @endforeach
+              @else
+                Chưa có lịch sử
+              @endif
+            </div>
+            </ul>
+        </div>
+        
 
       </div>
 
@@ -759,16 +831,6 @@ ul.typeahead.dropdown-menu {
 
   @include('partials.modal')
 
-
-
-
-
-
-
-  
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.1/bootstrap3-typeahead.min.js">
-    </script>
     <script type="text/javascript">
         var route = "{{ url('autocomplete-search') }}";
         $('#search').typeahead({
@@ -781,6 +843,17 @@ ul.typeahead.dropdown-menu {
             }
         });
 
-        
+        function yy(){
+          $.ajax({
+            url: '/dele',
+            method: 'get',
+            success: function () {
+                // console.log(response);
+                $( '#items' ).html('Chưa có lịch sử tìm kiếm');
+            },error: function(xhr, ajaxOptions, thrownError){
+                    console.log(xhr.status+" ,"+" "+ajaxOptions+", "+thrownError);
+            }
+          }); 
+        }
     </script>
 </html>

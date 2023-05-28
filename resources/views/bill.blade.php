@@ -47,9 +47,6 @@
                 color: black;
                 
             }
-            .form-input:not(:placeholder-shown){
-                  /* border: 1px solid black; */
-            }
             
             
 

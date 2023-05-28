@@ -19,9 +19,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 use Illuminate\Contracts\Session\Session as SessionSession;
 use Illuminate\Http\Request;
-// use Illuminate\Support\Facades\Cookie;
-use Cookie;
-use Illuminate\Support\Facades\Cookie as FacadesCookie;
+use Illuminate\Support\Facades\Cookie;
 use Session, Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session as FacadesSession;
@@ -65,8 +63,6 @@ class HomeController extends Controller
                     if(empty($varcity->id)){
                         $namehotel = $request->input('city');
                         $varhotels = Hotel::where('name', 'LIKE' , '%'.$namehotel.'%')->first()->id;
-                        FacadesCookie::queue('cookie', $varhotels, 120);
-                        return response();
                         return to_route('hotel.detail', ['id' => $varhotels, 'startDate' => $startDate, 'endDate'=> $endDate]);
                         }
                 $city= $varcity->id;
@@ -76,6 +72,27 @@ class HomeController extends Controller
             $city= $varcity->id;
             $namecity = $varcity->city;
         }
+        if($request->hasCookie('cookie_t') == false){ 
+            $data =collect([]);
+            $data->push($city) ;
+            $data = $data->toArray();
+            $array_json=json_encode($data);
+        }
+        else{
+            $data = Cookie::get('cookie_t');
+            $data=json_decode($data); //mảng
+            $cityy = collect($city);
+            $cityy = $cityy ->toArray();
+            if(in_array($city, $data)){
+                $data = array_diff($data, $cityy); //xóa $city đã tồn tại trong $data
+                $data = array_unique(array_merge($data, $cityy)); //thêm lại $city vào data => thay đổi vị trí (giữ data mới xóa cũ)
+            }else{
+                $data = array_merge($data, $cityy);
+            };
+            $array_json=json_encode($data);
+            
+        }
+        Cookie::queue('cookie_t', $array_json, 120);
         $request->session()->forget('stars'); 
         $request->session()->forget('types'); 
         return redirect()->route('searchwithcity', [$city, 'startDate'=>$startDate, 'endDate'=> $endDate, 'namecity'=>$namecity]);
@@ -253,8 +270,6 @@ class HomeController extends Controller
             $favohotel =  $this->favorite->getId();
             $favohotel = $favohotel->toArray();
         }
-        // dd($rooms);
-       
         
         return view('searchhotel', compact('favohotel','hotels','city', 'namecity', 'startDate', 'endDate', 'days', 'sohotels', 'codes','categories', 'page'));
     }
@@ -401,12 +416,9 @@ class HomeController extends Controller
         }
         return redirect()->back()->with(['mess'=> "đã thêm vào danh sach yêu thích"]);
     }
-    public function test(){
-        // $cookieRes = Cookie::get('cookie');
-        dd('sfhsdbfshdb');
+
+    public function dele(){
+        // Cookie::queue( Cookie::forget('cookie_t')); không hoạt động nên chuyển qua dùng dòng bên dưới
+        setcookie('cookie_t', 'Expired', time() - 1000000000, '/');
     }
-
-    
-
-    
 }

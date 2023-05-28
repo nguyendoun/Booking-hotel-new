@@ -49,6 +49,11 @@ function showRate($id)
         return $countrate[0];
     }
 
+function getNameCity($cityid)
+    {
+        $nameCity = City::where('id', $cityid)->first()->city;
+        return $nameCity;
+    }
     
 
 

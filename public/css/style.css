@@ -713,9 +713,24 @@
             display: flex;
         }
     
-        
+      
 }
 
+ul.lichsu.dropdown-menu{
+  flex-direction: column;
+  transform: translate(69px,0px);
+  min-width: 630px;
+}
+form:has(.timkiem:focus) ~ .lichsu, .lichsu:hover{
+  display: flex;
+} 
+ /* form:has(.timkiem:not(:focus)) ~ .lichsu{
+  display: none;
+} */
+
+form:has(.timkiem:not(:placeholder-shown)) ~ .lichsu{
+  display: none;
+}
 
 
 
