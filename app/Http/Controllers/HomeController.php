@@ -50,28 +50,44 @@ class HomeController extends Controller
     //post
     public function searchhotel(Request $request){
         $namecity = $request->input('city');
-        $varcity = City::where('city', 'LIKE' , '%'.$namecity.'%')->first();
         $startDate = $request->input('startDate');
         $endDate = $request->input('endDate');
-        if(empty($varcity->id)){
+
+        // Nếu typeahead đã đẩy kèm type+id, short-circuit không cần parse text
+        $searchType = $request->input('search_type');
+        $searchId = $request->input('search_id');
+        if ($searchType === 'hotel' && !empty($searchId)) {
+            return to_route('hotel.detail', ['id' => $searchId, 'startDate' => $startDate, 'endDate' => $endDate]);
+        }
+
+        $varcity = null;
+        if ($searchType === 'city' && !empty($searchId)) {
+            $varcity = City::find($searchId);
+        }
+        // Fallback: user gõ tay rồi submit (không click dropdown)
+        if (!$varcity) {
+            $varcity = City::where('city', 'LIKE' , '%'.$namecity.'%')->first();
+        }
+        if (!$varcity) {
             $f = strtok($namecity, " ");
             $varcity = City::where('city', 'LIKE' , $f.'%')->first();
-            if(empty($varcity->id)){
-                $f = explode(' ', $namecity);
-                $f = array_pop($f);
-                $varcity = City::where('city', 'LIKE' ,'%'.$f)->first();
-                    if(empty($varcity->id)){
-                        $namehotel = $request->input('city');
-                        $varhotels = Hotel::where('name', 'LIKE' , '%'.$namehotel.'%')->first()->id;
-                        return to_route('hotel.detail', ['id' => $varhotels, 'startDate' => $startDate, 'endDate'=> $endDate]);
-                        }
-                $city= $varcity->id;
-                $namecity = $varcity->city;
-                }
-        }else{
-            $city= $varcity->id;
-            $namecity = $varcity->city;
         }
+        if (!$varcity) {
+            $parts = explode(' ', $namecity);
+            $f = array_pop($parts);
+            $varcity = City::where('city', 'LIKE' , '%'.$f)->first();
+        }
+        if (!$varcity) {
+            $hotel = Hotel::where('name', 'LIKE', '%'.$namecity.'%')->first();
+            if (!$hotel) {
+                return redirect()->back()
+                    ->with('error', "Không tìm thấy địa điểm hoặc khách sạn phù hợp với \"{$namecity}\".")
+                    ->withInput();
+            }
+            return to_route('hotel.detail', ['id' => $hotel->id, 'startDate' => $startDate, 'endDate' => $endDate]);
+        }
+        $city = $varcity->id;
+        $namecity = $varcity->city;
         if($request->hasCookie('cookie_t') == false){ 
             $data =collect([]);
             $data->push($city) ;
@@ -207,29 +223,32 @@ class HomeController extends Controller
             $price_min = 0;
             $price_max = 100000000;
         }
+        // Room có booking overlap nhưng vẫn còn slot trống (sum(qty_total) < qty)
+        $availableRoom = BookingRoom::join('rooms', 'rooms.id', '=', 'booking_rooms.room_id')
+            ->select('room_id', 'qty', DB::raw('sum(qty_total) as total_qty'))
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->where('startDate', '<', $endDate)
+                  ->where('endDate', '>', $startDate);
+            })
+            ->groupBy('room_id', 'qty')
+            ->havingRaw('sum(qty_total) < qty')
+            ->pluck('room_id');
+
+        $roomsQuery = Room::with('roomType', 'bookingRooms')
+            ->join('hotels', 'hotels.id', '=', 'rooms.hotel_id')
+            ->join('cities', 'cities.id', '=', 'hotels.city_id')
+            ->where(function ($q) use ($startDate, $endDate, $availableRoom) {
+                $q->whereDoesntHave('bookingRooms', function ($q2) use ($startDate, $endDate) {
+                    $q2->where('startDate', '<', $endDate)
+                       ->where('endDate', '>', $startDate);
+                })->orWhereIn('rooms.id', $availableRoom);
+            })
+            ->whereBetween('price', [$price_min, $price_max]);
+
         if (isset($condition) && $condition !== "rate") {
-            $rooms = Room::with('roomType','bookingRooms')
-            ->join('hotels', 'hotels.id', '=', 'rooms.hotel_id')
-            ->join('cities', 'cities.id', '=', 'hotels.city_id')
-            ->whereHas('bookingRooms', function ($q) use ($startDate, $endDate) {
-                $q->where(function ($q2) use ($startDate, $endDate) {
-                    $q2->where('startDate', '>', $endDate)
-                       ->orWhere('endDate', '<', $startDate);
-                });
-            })->orWhereDoesntHave('bookingRooms')
-            ->orderBy($condition, $orderBy)->whereBetween('price', [$price_min, $price_max])
-            ->get();
-        } else{
-            $rooms = Room::with('roomType','bookingRooms')
-            ->join('hotels', 'hotels.id', '=', 'rooms.hotel_id')
-            ->join('cities', 'cities.id', '=', 'hotels.city_id')
-            ->whereHas('bookingRooms', function ($q) use ($startDate, $endDate) {
-                $q->where(function ($q2) use ($startDate, $endDate) {
-                    $q2->where('startDate', '>', $endDate)
-                       ->orWhere('endDate', '<', $startDate);
-                });
-            })->orWhereDoesntHave('bookingRooms')->whereBetween('price', [$price_min, $price_max])->get();
+            $roomsQuery->orderBy($condition, $orderBy);
         }
+        $rooms = $roomsQuery->get();
         $rooms = $rooms->whereIn('city_id', $city);
         if($rooms->count() !== 0){
             foreach($rooms as $room){
@@ -274,20 +293,27 @@ class HomeController extends Controller
         return view('searchhotel', compact('favohotel','hotels','city', 'namecity', 'startDate', 'endDate', 'days', 'sohotels', 'codes','categories', 'page'));
     }
     public function booking(Request $request){
-        $roomid = $request -> input('roomid');
-        $hotelid = $request -> input('hotelid');
-        $qty = $request-> input('qty');
+        $roomid = $request->input('roomid');
+        $hotelid = $request->input('hotelid');
+        $qty = $request->input('qty');
         if($qty == 0){
-            return redirect()->back(); 
+            return redirect()->back();
         }
         $startDate = $request->input('startDate');
         $endDate = $request->input('endDate');
         $days= floor((strtotime($endDate) - strtotime($startDate))/(60*60*24));
         $code = $request->input('code');
-        $reduction = $request -> input('reduction');
-        $subtotal = $request -> input('subtotal');
-        $hotel= Hotel::where('id', '=', $hotelid)->with('city', 'category')->get();
-        $rooms = Room::where('id', '=',$roomid )->with('roomType', 'images')->get();
+        $hotel = Hotel::where('id', $hotelid)->with('city', 'category')->get();
+        $rooms = Room::where('id', $roomid)->with('roomType', 'images')->get();
+
+        // Tính subtotal & reduction từ DB (không trust client) — same formula as hotelDetail.blade.php
+        $room = $rooms->first();
+        $discount = $room->discount ?? 0;
+        $subtotal = $room->price
+            - ($room->price * $discount) / 100
+            - ((($room->price * $discount) / 100) * 4) / 100;
+        $coupon = !empty($code) ? Coupon::where('code', $code)->first() : null;
+        $reduction = $coupon ? $coupon->reduction : 0;
         if(Auth::check()){
             $user_id = Auth::user()->id;
             $name = Auth::user()->name;
@@ -308,75 +334,107 @@ class HomeController extends Controller
        
     }
     public function thanhtoan(Request $request){
-        
-        $roomid = $request -> input('roomid');
-        $qty = $request-> input('qty');
-        $startDate = $request->input('startDate');
-        $endDate = $request->input('endDate');
+        $request->validate([
+            'roomid'    => 'required|exists:rooms,id',
+            'qty'       => 'required|integer|min:1',
+            'startDate' => 'required|date',
+            'endDate'   => 'required|date|after:startDate',
+        ]);
 
-         $startDate = date("Y-m-d", strtotime($startDate));
-        
-         $endDate = date("Y-m-d", strtotime($endDate));
+        $roomid = $request->input('roomid');
+        $qty = (int) $request->input('qty');
+        $startDate = date("Y-m-d", strtotime($request->input('startDate')));
+        $endDate = date("Y-m-d", strtotime($request->input('endDate')));
+        $days = floor((strtotime($endDate) - strtotime($startDate)) / (60 * 60 * 24));
 
-        $days= floor((strtotime($endDate) - strtotime($startDate))/(60*60*24));
         $code = $request->input('code');
-        $reduction = Coupon::where('code', 'like' , $code)->pluck('reduction')->first();
-        $note = $request->input('note');
-        $subtotal = $request->input('subtotal');
-        $totalqty =  $subtotal * $qty*$days;
-        
+        $coupon = !empty($code) ? Coupon::where('code', $code)->first() : null;
+        $reduction = $coupon ? $coupon->reduction : 0;
+        $coupon_id = $coupon ? $coupon->id : null;
 
-        $id = Coupon::where('code', 'like' , $code)->first()->id;
-        $rooms = Room::where('id', '=',$roomid )->with('hotel','roomType', 'images')->get();
-        $total = $totalqty - ($totalqty*$reduction/100);
-        if(Auth::check()){
+        $note = $request->input('note') ?? 'null';
+
+        if (Auth::check()) {
             $user_id = Auth::user()->id;
-            $name = $request->input('name');
-            $phone = $request->input('phone');
-            $email = $request->input('email');
-            DB::insert("insert into bookings (user_id, coupon_id) values ($user_id,  $code_id )");
-            $booking_id = Booking::where('user_id', '=' , $user_id)->orderBy('id', 'DESC')->pluck('id')->first();
-            $checkname="HN";
+            $checkname = "HN";
+        } else {
+            $user_id = null;
+            $checkname = "NN";
         }
-        else{
-            $user_id ='null';
-            DB::insert("insert into bookings (user_id, coupon_id) values ($user_id,  $code_id)");
-            $booking_id = Booking::orderBy('id', 'DESC')->pluck('id')->first();
-            $name = $request->input('name');
-            $phone = $request->input('phone');
-            $email = $request->input('email');
-            $checkname="NN";
-        }
-        if(isset($note)){
-            $note = $note;
-        }else{
-            $note = 'null';
-        }
-        $time =Carbon::now('Asia/Ho_Chi_Minh')->toDateString();
-        $time = str_replace("-","",$time);
-        $order_code= $booking_id.$checkname.$time.$qty.$roomid;
 
-        $booking_room = new BookingRoom();
-        $booking_room->booking_id = $booking_id;
-        $booking_room->qty_total = $qty;
-        $booking_room->room_id = $roomid;
-        $booking_room->order_code = $order_code;
-        $booking_room->subtotal= $subtotal;
-        $booking_room->startDate= $request->startDate;
-        $booking_room->endDate= $request->endDate;
-        $booking_room->num_days = $days;
-        $booking_room->reduction = $reduction; 
-        $booking_room->total = $total; 
-        $booking_room->note = $note; 
-        $booking_room->save();
+        $name = $request->input('name');
+        $phone = $request->input('phone');
+        $email = $request->input('email');
 
-        $booking_info = new BookingInfo();
-        $booking_info->booking_id = $booking_id;
-        $booking_info->name = $name;
-        $booking_info->phone = $phone;
-        $booking_info->email = $email;
-        $booking_info->save();
-        return view('bill', compact('rooms','startDate', 'endDate', 'qty','days','subtotal','total', 'reduction','order_code'));
+        try {
+            $result = DB::transaction(function () use (
+                $roomid, $qty, $startDate, $endDate, $days, $reduction, $coupon_id,
+                $user_id, $checkname, $name, $phone, $email, $note
+            ) {
+                // Lock room row → các request đặt cùng phòng phải xếp hàng
+                $room = Room::where('id', $roomid)->lockForUpdate()->firstOrFail();
+
+                $bookedQty = (int) BookingRoom::where('room_id', $roomid)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->where('startDate', '<', $endDate)
+                          ->where('endDate', '>', $startDate);
+                    })
+                    ->sum('qty_total');
+                $available = $room->qty - $bookedQty;
+                if ($qty > $available) {
+                    throw new \RuntimeException("Chỉ còn {$available} phòng cho khoảng thời gian này.");
+                }
+
+                // Tính subtotal từ DB (không trust client) — same formula as hotelDetail.blade.php
+                $discount = $room->discount ?? 0;
+                $subtotal = $room->price
+                    - ($room->price * $discount) / 100
+                    - ((($room->price * $discount) / 100) * 4) / 100;
+                $totalqty = $subtotal * $qty * $days;
+                $total = $totalqty - ($totalqty * $reduction / 100);
+
+                $booking = Booking::create([
+                    'user_id'   => $user_id,
+                    'coupon_id' => $coupon_id,
+                ]);
+                $booking_id = $booking->id;
+
+                $time = str_replace("-", "", Carbon::now('Asia/Ho_Chi_Minh')->toDateString());
+                $order_code = $booking_id . $checkname . $time . $qty . $roomid;
+
+                $booking_room = new BookingRoom();
+                $booking_room->booking_id = $booking_id;
+                $booking_room->qty_total = $qty;
+                $booking_room->room_id = $roomid;
+                $booking_room->order_code = $order_code;
+                $booking_room->subtotal = $subtotal;
+                $booking_room->startDate = $startDate;
+                $booking_room->endDate = $endDate;
+                $booking_room->num_days = $days;
+                $booking_room->reduction = $reduction;
+                $booking_room->total = $total;
+                $booking_room->note = $note;
+                $booking_room->save();
+
+                $booking_info = new BookingInfo();
+                $booking_info->booking_id = $booking_id;
+                $booking_info->name = $name;
+                $booking_info->phone = $phone;
+                $booking_info->email = $email;
+                $booking_info->save();
+
+                return compact('subtotal', 'total', 'order_code');
+            });
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+
+        $rooms = Room::where('id', $roomid)->with('hotel', 'roomType', 'images')->get();
+        $subtotal = $result['subtotal'];
+        $total = $result['total'];
+        $order_code = $result['order_code'];
+
+        return view('bill', compact('rooms', 'startDate', 'endDate', 'qty', 'days', 'subtotal', 'total', 'reduction', 'order_code'));
     }
 
 

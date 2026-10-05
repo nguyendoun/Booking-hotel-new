@@ -15,11 +15,9 @@
   <link rel='stylesheet' href='https://sachinchoolur.github.io/lightslider/dist/css/lightslider.css'>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
-  
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.1/bootstrap3-typeahead.min.js"></script>
   <script type="text/javascript" src="{{URL::asset('js/main.js')}}"></script>
 <style>
@@ -292,6 +290,12 @@ button.deletee {
         <h2>Book hotels online</h2>
       </div>
 
+      @if (session('error'))
+        <div class="alert alert-danger" role="alert" style="margin: 16px auto; max-width: 800px;">
+          {{ session('error') }}
+        </div>
+      @endif
+
       <div class="booking_info PC">
 
         <div class="opt">
@@ -304,19 +308,20 @@ button.deletee {
             <div class="item">
               <i class="fa fa-search"></i>
               <input value="" required class="timkiem" id="search" type="text" name="city" placeholder="Địa điểm, khách sạn"  autocomplete="off" style="border: none;padding-left: 4px;">
-              
+              <input type="hidden" name="search_type" value="">
+              <input type="hidden" name="search_id" value="">
             </div>
-  
+
             <div class="item">
               <p style="margin: 0px;">Thời gian đến:</p>
               <input type="date" name="startDate" value="{{ $dtnow }}" min="{{$dtnow}}">
             </div>
-  
+
             <div class="item">
               <p style="margin: 0px;">Thời điểm đi:</p>
               <input type="date" name="endDate" value="{{ $dt }}">
             </div>
-  
+
             <div class="item">
               <div class="cta active">
                 <input type="hidden" name="orderBy" value="DEFAULT">
@@ -324,11 +329,13 @@ button.deletee {
               </div>
             </div>
           </form>
-  
-          <form class="booking_details tab__content" id="Homes">
+
+          <form class="booking_details tab__content" id="Homes" action="{{ route('search.hotel') }}" method="GET">
             <div class="item">
               <i class="fa fa-search"></i>
-              <input required class="timkiem " id="" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
+              <input required class="timkiem" id="search2" type="text" name="city" placeholder="Enter a destination" autocomplete="off"  style="border: none;padding-left: 4px;">
+              <input type="hidden" name="search_type" value="">
+              <input type="hidden" name="search_id" value="">
             </div>
   
             <div class="item">
@@ -353,7 +360,7 @@ button.deletee {
           <ul class="dropdown-menu lichsu" role="listbox" id="lichsu" tabindex="1">
             <div class="qwf">
               <div>Tìm kiếm gần đây</div>
-              <button class="deletee" onclick="yy()">Xóa lịch sử tìm kiếm</button>
+              <button class="deletee" onclick="deleteHistory()">Xóa lịch sử tìm kiếm</button>
             </div>
             <div id="items">
               @if($ck !== null)
@@ -833,17 +840,50 @@ button.deletee {
 
     <script type="text/javascript">
         var route = "{{ url('autocomplete-search') }}";
-        $('#search').typeahead({
-            source: function (query, process) {
-                return $.get(route, {
-                    query: query
-                }, function (data) {
-                    return process(data);
-                });
-            }
+        $('.timkiem').each(function () {
+            var $input = $(this);
+            var $form = $input.closest('form');
+            var $type = $form.find('input[name="search_type"]');
+            var $sid  = $form.find('input[name="search_id"]');
+
+            $input.typeahead({
+                minLength: 1,
+                items: 10,
+                source: function (query, process) {
+                    // User gõ lại → xóa selection cũ
+                    $type.val('');
+                    $sid.val('');
+                    $.get(route, { query: query }, function (data) {
+                        process(data);
+                    });
+                },
+                // Server đã lọc theo LIKE rồi → không matcher/sort lại ở client
+                matcher: function () { return true; },
+                sorter: function (items) { return items; },
+                displayText: function (item) {
+                    return (item && typeof item === 'object') ? item.label : item;
+                },
+                highlighter: function (text) {
+                    return (typeof text === 'string') ? text : (text && text.label) ? text.label : '';
+                },
+                updater: function (item) {
+                    if (item && typeof item === 'object') {
+                        $type.val(item.type);
+                        $sid.val(item.id);
+                        return item.label;
+                    }
+                    return item;
+                },
+                afterSelect: function (item) {
+                    if (item && typeof item === 'object') {
+                        $type.val(item.type);
+                        $sid.val(item.id);
+                    }
+                }
+            });
         });
 
-        function yy(){
+        function deleteHistory(){
           $.ajax({
             url: '/dele',
             method: 'get',

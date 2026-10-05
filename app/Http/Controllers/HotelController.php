@@ -10,6 +10,7 @@ use App\Models\Coupon;
 use App\Models\Image;
 use App\Models\BookingRoom;
 use App\Models\Favorite;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DB, Session, Auth;
 
@@ -59,38 +60,51 @@ class HotelController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request, $id)
-    {   
+    {
         $id = $id ?? $request->input('idhotel');
         $startDate = $request->input('startDate');
+        if (empty($startDate)) {
+            $startDate = Carbon::now('Asia/Ho_Chi_Minh')->toDateString();
+        }
         $endDate = $request->input('endDate');
-        $days= floor((strtotime($endDate) - strtotime($startDate))/(60*60*24));
-        
-        $availableRoom = BookingRoom::join('rooms','rooms.id','=','booking_rooms.room_id')
-                            ->where('hotel_id', '=', $id)
-                            ->select("room_id", "qty",  DB::raw('(sum(qty_total)) as total_qty'),  DB::raw('((qty- sum(qty_total))) as new_qty'))
-                        ->where(function ($q) use ($startDate, $endDate) {
-                            $q->where('startDate', '<',$endDate)
-                            ->orWhere('endDate', '<', $startDate);})
-                            ->groupBy(DB::raw('room_id'), 'qty')
-                            ->havingRaw('(sum(qty_total)) < qty')
-                            ->get()->toArray();
-                            $room_id = array_column($availableRoom, 'room_id');
-                            $available = $availableRoom;
-        $availableRoom = Room::with('roomType','bookingRooms', 'images')
-                        ->whereDoesntHave('bookingRooms', function ($q) use ($startDate, $endDate) {
-                            $q->where('startDate', '>',$endDate)
-                            ->orWhere('endDate', '>', $startDate);})
-                            ->orWhereIn('id', $room_id)
-                            ->get();      
-        $changeqty =$availableRoom->map(function ($post, $key) use($availableRoom, $available){ 
-                            foreach($available as $k){
-                                if($availableRoom[$key]->id == $k['room_id']){
-                                    $post['new_qty'] = $k['new_qty'];
-                                    return $post;
-                                }
-                            }
-                        });
-        $rooms = $availableRoom->where('hotel_id', '=', $id);
+        if (empty($endDate)) {
+            $endDate = Carbon::now('Asia/Ho_Chi_Minh')->addDay()->toDateString();
+        }
+        $days = floor((strtotime($endDate) - strtotime($startDate)) / (60 * 60 * 24));
+
+        // Room thuộc hotel này có booking overlap nhưng vẫn còn slot trống
+        $available = BookingRoom::join('rooms', 'rooms.id', '=', 'booking_rooms.room_id')
+            ->where('rooms.hotel_id', $id)
+            ->select('room_id', 'qty', DB::raw('sum(qty_total) as total_qty'), DB::raw('(qty - sum(qty_total)) as new_qty'))
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->where('startDate', '<', $endDate)
+                  ->where('endDate', '>', $startDate);
+            })
+            ->groupBy('room_id', 'qty')
+            ->havingRaw('sum(qty_total) < qty')
+            ->get()
+            ->toArray();
+        $room_id = array_column($available, 'room_id');
+
+        $rooms = Room::with('roomType', 'bookingRooms', 'images')
+            ->where('hotel_id', $id)
+            ->where(function ($q) use ($startDate, $endDate, $room_id) {
+                $q->whereDoesntHave('bookingRooms', function ($q2) use ($startDate, $endDate) {
+                    $q2->where('startDate', '<', $endDate)
+                       ->where('endDate', '>', $startDate);
+                })->orWhereIn('id', $room_id);
+            })
+            ->get();
+
+        $rooms = $rooms->map(function ($room) use ($available) {
+            foreach ($available as $k) {
+                if ($room->id == $k['room_id']) {
+                    $room->new_qty = $k['new_qty'];
+                    break;
+                }
+            }
+            return $room;
+        });
         $hotel= Hotel::where('id', '=', $id)->with('city', 'category', 'hotelRates','img_nearloca')->get();
         $codes = Coupon::all();
         $hotelRates = HotelRate::where('hotel_id', '=',$id)->orderBy('created_at','desc')->get();

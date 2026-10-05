@@ -5,6 +5,18 @@
 
 @section('content')
 
+@if (session('error'))
+    <div class="alert alert-danger" role="alert" style="margin: 16px;">
+        {{ session('error') }}
+    </div>
+@endif
+
+@if (session('status'))
+    <div class="alert alert-success" role="alert" style="margin: 16px;">
+        Trạng thái đơn hàng: <strong>{{ session('status') }}</strong>
+    </div>
+@endif
+
 <form class="" id="Hotels" action="{{ route('checkorderstt') }}" method="POST">
     @csrf
     <div class="item">
@@ -24,6 +36,6 @@
       </div>
     </div>
   </form>
-    
+
 
 @stop

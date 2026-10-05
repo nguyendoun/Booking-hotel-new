@@ -90,26 +90,39 @@ class BookingController extends Controller
         return view('checkticked');
     }
     public function checkorderstt(Request $request){
-        
+        $request->validate([
+            'order_code'   => 'required|string',
+            'number_phone' => 'required|string',
+        ]);
+
         $ordercode = $request->input('order_code');
         $sdt = $request->input('number_phone');
-       
-        $rs = Booking::whereHas('bookingRooms', function ($query) use ($ordercode){
-            return $query->where('order_code', $ordercode);
-            })->whereHas('bookingInfos', function ($q) use ($sdt){
-                return $q->where('phone', $sdt);
-                })->first();
-        if($rs !== null){
-            if($rs->status == 0){
-                dd('chờ xác nhận');
-            }
-            elseif($rs->status == 1){
-                dd('đã xác nhận');
-            }
-        }else{
-            dd('chịu');
+
+        $rs = Booking::with('bookingRooms', 'bookingInfos')
+            ->whereHas('bookingRooms', function ($query) use ($ordercode) {
+                $query->where('order_code', $ordercode);
+            })
+            ->whereHas('bookingInfos', function ($q) use ($sdt) {
+                $q->where('phone', $sdt);
+            })
+            ->first();
+
+        if ($rs === null) {
+            return redirect()->route('checkticked')
+                ->with('error', 'Không tìm thấy đơn hàng. Vui lòng kiểm tra lại mã đơn hàng và số điện thoại.');
         }
-        
+
+        $statusText = [
+            0 => 'Chờ xác nhận',
+            1 => 'Đã xác nhận',
+            2 => 'Đã hoàn thành',
+            3 => 'Đã hủy',
+        ];
+        $status = $statusText[$rs->status] ?? 'Không xác định';
+
+        return redirect()->route('checkticked')
+            ->with('status', $status)
+            ->with('booking', $rs);
     }
 
     public function yourorders(){
