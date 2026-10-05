@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: booking-hotel
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: deploy
+    healthCheckPath: /
+    envVars:
+      - key: APP_URL
+        value: https://doun.online
+      - key: ADMIN_EMAIL
+        value: admin@doun.online
+      - key: ADMIN_PASSWORD
+        generateValue: true

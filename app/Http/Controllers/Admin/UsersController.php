@@ -86,7 +86,7 @@ class UsersController extends Controller
     }
 
     public function showloginAdmin(){
-        return view('Admin.users.login');
+        return view('admin.users.login');
     }
 
     public function loginAdmin(Request $request)

@@ -31,6 +31,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        URL::forceScheme('http');
+        if ($this->app->environment('production')) {
+            // Served behind a proxy on another hostname: build every link from APP_URL.
+            URL::forceRootUrl(config('app.url'));
+            URL::forceScheme('https');
+        } else {
+            URL::forceScheme('http');
+        }
     }
 }

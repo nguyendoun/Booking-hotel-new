@@ -19,7 +19,7 @@ class AdviseController extends Controller
     public function index()
     {
         $advises = Advise::all();
-        return view('admin.advise.index',compact('advises'));
+        return view('admin.Advise.index',compact('advises'));
     }
 
     /**
